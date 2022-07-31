@@ -182,60 +182,8 @@
     <div class="article-entry" itemprop="articleBody">
       
           
-        <h1 id="Cardano-简单介绍"><a href="#Cardano-简单介绍" class="headerlink" title="Cardano 简单介绍"></a><strong>Cardano 简单介绍</strong></h1><p>Cardano 是一个以PoS为核心的区块链开源项目。所有节点以pool为单位，以pool所有用的stake来决定哪个pool拥有产生block的权力。<br>这里搭建一个只有一个pool的私有集群供学习研究使用。</p>
-<h1 id="需要工具"><a href="#需要工具" class="headerlink" title="需要工具"></a><strong>需要工具</strong></h1><p>搭建过程只使用cardano-cli和cardano-node,安装过程参考这里<a target="_blank" rel="noopener" href="https://developers.cardano.org/docs/get-started/installing-cardano-node/">Cardano scripts</a></p>
-<h1 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a><strong>步骤</strong></h1><p>deploy 脚本使用官方提供的<a target="_blank" rel="noopener" href="https://github.com/input-output-hk/cardano-node/tree/master/scripts/byron-to-alonzo">byron-to-alonzo</a>, 其他的一些脚本要不就是有点问题，要不就是不知道怎么运行。<br>脚本中提供代码是在本地运行两个节点，步骤是通过mkfiles.sh生成需要的文件，然后运行节点，接着通过几个update-x.sh脚本逐步更新协议。</p>
-<h2 id="mkfiles-sh"><a href="#mkfiles-sh" class="headerlink" title="mkfiles.sh"></a>mkfiles.sh</h2><p>这里通过修改mkfiles.sh去生成多个节点和多个user accounts.</p>
-<ul>
-<li>NUM_BFT_NODES: 设置集群的总bft节点数(不包括pool节点)</li>
-<li>BFT_NODES: 对应的节点名字</li>
-<li>BFT_NODES_N: 节点的后缀</li>
-<li>INIT_SUPPLY: 如果输入太小，需要增加这个值</li>
-<li>SECURITY_PARAM: 可能需要修改成大一点的数(譬如20)，不然不能存储多点的钱</li>
-<li>node-bftx&#x2F;topology.json: 对每一个节点生成对应的topo文件，构成一个完全图</li>
-<li>byron.genesis.spec.json：<ul>
-<li>slotDuration: 一个slot的长度，当节点数变多时，可能需要增加，不然会同步失败</li>
-</ul>
-</li>
-<li>genesis.spec.json:<ul>
-<li>epochLength: 400 这个好像没什么用，但是不能太小,如果发现同步不了，需要调大</li>
-<li>slotLength: 0.05 shelly era下slot的长度, 1&#x2F;0.05s一个slot</li>
-<li>maxTxSize: 如果input 或者output太大，会超过默认限制，需要调大</li>
-<li>updateQuorum: 需要vote的个数(2f+1 或者2&#x2F;3)</li>
-</ul>
-</li>
-</ul>
-<p>添加多台机器可能需要修改 BFT_NODES_N[@] 和 delegate-keys.${id}.key 生成对应的文件。</p>
-<h2 id="update-1-sh-和-update-2-sh"><a href="#update-1-sh-和-update-2-sh" class="headerlink" title="update-1.sh 和 update-2.sh"></a>update-1.sh 和 update-2.sh</h2><p>初始化byron模式 和 shelley.sh, 需要把原来只提交2个vote变成提交多个vote</p>
-  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">for((i=0;i&lt;N;i++))</span><br><span class="line">do</span><br><span class="line">cardano-cli byron submit-proposal-vote  \</span><br><span class="line">            --testnet-magic 42 \</span><br><span class="line">            --filepath update-vote.$&#123;i&#125;</span><br><span class="line">done</span><br></pre></td></tr></table></figure>
-
-<h2 id="update-3-sh"><a href="#update-3-sh" class="headerlink" title="update-3.sh"></a>update-3.sh</h2><p>给每一个账号派钱</p>
-<ul>
-<li>COINS_IN_INPUT: 要派出去的钱</li>
-<li>fee: 提交交易给的费用，如果费用太小会提示，对应增加就好</li>
-<li>–tx-out $(cat addresses&#x2F;user1.addr)+xxx 给某个账户多少钱，给出去的钱+fee要等于要派的钱·COINS_IN_INPUT·</li>
-</ul>
-<p>cardano-cli transaction sign 的时候需要多数派的签名</p>
-<h1 id="Deploy"><a href="#Deploy" class="headerlink" title="Deploy"></a><strong>Deploy</strong></h1><ol>
-<li><p>运行mkfile.sh生成各种文件，然后scp到各台机器.</p>
-</li>
-<li><p>运行每台机器上的run&#x2F;node-bft${i}.sh2 和 pool机器上的run&#x2F;node-pool1.sh </p>
-</li>
-<li><p>如果log显示 “at slot xxx” 则配置正确</p>
-</li>
-<li><p>等到一个epoch的slot，例如如果epochLength配置了400，则等到slot大于400，在pool1上运行update-1.sh</p>
-</li>
-<li><p>继续等到一个epoch，运行update-2.sh</p>
-</li>
-<li><p>继续等大概到800或者更高，”at slot” 换成 “slot number” 而且刷得很meng</p>
-</li>
-<li><p>运行update-3.sh 给每一个账号发钱，等一个slot length,查看账号是不是有变化</p>
-<blockquote>
-<p>CARDANO_NODE_SOCKET_PATH&#x3D;example&#x2F;node-bft1&#x2F;node.sock cardano-cli query utxo –whole-utxo –testnet-magic 42</p>
-</blockquote>
-</li>
-</ol>
-
+              搭建一个多节点的Cardano私有集群
+          
       
     </div>
     
@@ -252,7 +200,6 @@
         <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/deployment/" rel="tag">deployment</a></li></ul>
     </div>
 
-      
       <div class="clearfix"></div>
     </div>
     
@@ -306,15 +253,10 @@
 
 <script src="/js/main.js"></script>
 
-
-    <script>
-        $(document).ready(function() {
-            var backgroundnum = 24;
-            var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
-            $("#mobile-nav").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
-            $(".left-col").css({"background-image": backgroundimg,"background-size": "cover","background-position": "center"});
-        })
-    </script>
+<script>
+	$(document).ready(function() {
+	})
+</script>
 
 
 
