@@ -96,7 +96,7 @@
                 
                 <section class="switch-part switch-part2">
                     <div class="widget tagcloud" id="js-tagcloud">
-                        <a href="/tags/deployment/" style="font-size: 10px;">deployment</a>
+                        <a href="/tags/Deployment/" style="font-size: 10px;">Deployment</a> <a href="/tags/deployment/" style="font-size: 10px;">deployment</a>
                     </div>
                 </section>
                 
@@ -154,6 +154,123 @@
     </div>
 </nav>
       <div class="body-wrap">
+  
+    <article id="post-hyperledger-deploy" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2022/08/05/hyperledger-deploy/" class="article-date">
+      <time datetime="2022-08-05T02:57:55.000Z" itemprop="datePublished">2022-08-05</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2022/08/05/hyperledger-deploy/">hyperledger deploy</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>hyperledger是一个微软开发的区块链项目，它包含了两种节点，一个是peer，负责对请求进行处理，一个是orderer，负责对请求进行排序(利用raft一致性协议)</p>
+<h1 id="Deployment"><a href="#Deployment" class="headerlink" title="Deployment"></a>Deployment</h1><ol>
+<li><p>设置ip <a target="_blank" rel="noopener" href="https://github.com/cjcchen/blockchain_deployment/blob/master/hyperledger/my_deploy/config/ip_config.sh">config&#x2F;ip_config.sh</a></p>
+</li>
+<li><p>设置orderer的域名,域名个数要和iplist里面的orderer个数一直 <a target="_blank" rel="noopener" href="https://github.com/cjcchen/blockchain_deployment/blob/master/hyperledger/my_deploy/config/configtx.yaml#L44">config&#x2F;configtx.yaml</a></p>
+</li>
+<li><p>设置client ip, 一些client用的脚本会deploy到client节点 <a href="">scp_cli.sh</a></p>
+</li>
+<li><p>开始构建和deploy<br> 4.1 初始化一些配置文件和创世块 .&#x2F;script&#x2F;gen-config.sh<br> 4.2 scp每个节点需要的文件到该节点 .&#x2F;deploy_tools&#x2F;scp-orderer.sh<br> 4.3 重启节点 .&#x2F;deploy_tools&#x2F;restart.sh<br> 4.4 初始化channel和code .&#x2F;script&#x2F;full_start.sh</p>
+</li>
+<li><p>登录client节点并进入脚本目录 </p>
+ <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd ~/hyperledger/my_deploy</span><br></pre></td></tr></table></figure></li>
+<li><p>运行 .&#x2F;script&#x2F;modify.sh. 脚本会发送一系列请求到集群</p>
+</li>
+</ol>
+
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+  
+    <article id="post-Eth-deploy" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2022/08/04/Eth-deploy/" class="article-date">
+      <time datetime="2022-08-04T04:14:04.000Z" itemprop="datePublished">2022-08-04</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2022/08/04/Eth-deploy/">Eth deploy</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>consensus&#x2F;ethash&#x2F;consensus.go</p>
+<ol>
+<li>run scp_node.sh</li>
+<li>python3 makepeer.py</li>
+<li>.&#x2F;miner.sh 31</li>
+</ol>
+
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+
+      
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Deployment/" rel="tag">Deployment</a></li></ul>
+    </div>
+
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
   
     <article id="post-cardano-deployment" class="article article-type-post" itemscope itemprop="blogPost">
   
