@@ -13,11 +13,9 @@
 <meta property="og:description" content="HotStuff 是一个基于签名的3pc协议, 它是针对pbft的view change性能太低而提出的。view change是在一个view中多数派节点（我们叫quorum)没有收到primary的消息时就会触发。每次进行viewchange都会产生一个新的primary去防止原来的primary不工作或者做假工作。 HotStuff 的优化点在于他的view是不断增加的。每一轮consens">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-09-26T08:28:40.000Z">
-<meta property="article:modified_time" content="2022-09-27T15:31:53.669Z">
+<meta property="article:modified_time" content="2022-09-27T17:33:20.774Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
-  
-    <link rel="alternative" href="/atom.xml" title="JuneChen&#39;s Blog" type="application/atom+xml">
   
   
     <link rel="icon" href="/img/fav.jpeg">
@@ -188,6 +186,8 @@
           
         <p>HotStuff 是一个基于签名的3pc协议, 它是针对pbft的view change性能太低而提出的。view change是在一个view中多数派节点（我们叫quorum)没有收到primary的消息时就会触发。每次进行viewchange都会产生一个新的primary去防止原来的primary不工作或者做假工作。</p>
 <p>HotStuff 的优化点在于他的view是不断增加的。每一轮consensus都使用不同的view，这样就代表每一轮都可能是不同的leader去触发。</p>
+<span id="more"></span>
+
 <h1 id="基础HotStuff-的3阶段"><a href="#基础HotStuff-的3阶段" class="headerlink" title="基础HotStuff 的3阶段"></a>基础HotStuff 的3阶段</h1><h2 id="Prepare"><a href="#Prepare" class="headerlink" title="Prepare:"></a>Prepare:</h2><p><strong>leader</strong>:<br>  当前view的leader收到了(n-f)条NewView消息就开始这一轮的consensus。NewView是根据当前ViewNum算出来的，因此下一轮可能就不是这个leader了。<br>  NewView中带有每个节点的prepareQC。prepareQC代表这该节点已经投票了的proposal。prepareQC是之前某个leader收到了quorum个prepare vote之后产生的，然后广播给所有节点，代表该proposal已经进入了第二阶段。这里有点像paxos的第二阶段收到多数派的值后，该值就确定了。这个值就是prepareQC。然后每个节点将这个值发送给下一个leader，这样下一个leader就知道当前多数派得到的最新数据。</p>
 <p>  当leader收到了(n-f)条NewView后，选择需要提交的proposal, 创建新block，然后广播给其他节点,发送prepare message，其中包含了这个highQC。<br></br></p>
 <p><strong>replica</strong>:<br>  每个replica收到了leader的prepare message 后验证，然后把新的block追加到自己的chain当中。后返回一个prepare-vote message。</p>
@@ -249,27 +249,6 @@
                 <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
             </div>
         </div>
-        
-            <div class="visit">
-                
-                    <span id="busuanzi_container_site_pv" style='display:none'>
-                        <span id="site-visit" >海贼到访数: 
-                            <span id="busuanzi_value_site_uv"></span>
-                        </span>
-                    </span>
-                
-                
-                    <span>, </span>
-                
-                
-                    <span id="busuanzi_container_page_pv" style='display:none'>
-                        <span id="page-visit">本页阅读量: 
-                            <span id="busuanzi_value_page_pv"></span>
-                        </span>
-                    </span>
-                
-            </div>
-        
     </div>
 </footer>
 
@@ -299,32 +278,6 @@
 
 
 <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
-</script>
-
-  <script language="javascript">
-    $(function() {
-        $("a[title]").each(function() {
-            var a = $(this);
-            var title = a.attr('title');
-            if (title == undefined || title == "") return;
-            a.data('title', title).removeAttr('title').hover(
-
-            function() {
-                var offset = a.offset();
-                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
-                    top: offset.top - a.outerHeight() - 15,
-                    left: offset.left + a.outerWidth()/2 + 1
-                }).fadeIn(function() {
-                    var pop = $(this);
-                    setTimeout(function() {
-                        pop.remove();
-                    }, pop.text().length * 800);
-                });
-            }, function() {
-                $("#anchortitlecontainer").remove();
-            });
-        });
-    });
 </script>
 
 

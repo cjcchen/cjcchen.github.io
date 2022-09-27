@@ -13,8 +13,6 @@
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
   
-    <link rel="alternative" href="/atom.xml" title="JuneChen&#39;s Blog" type="application/atom+xml">
-  
   
     <link rel="icon" href="/img/fav.jpeg">
   
@@ -176,32 +174,9 @@
     <div class="article-entry" itemprop="articleBody">
       
           
-        <p>HotStuff 是一个基于签名的3pc协议, 它是针对pbft的view change性能太低而提出的。view change是在一个view中多数派节点（我们叫quorum)没有收到primary的消息时就会触发。每次进行viewchange都会产生一个新的primary去防止原来的primary不工作或者做假工作。</p>
+              <p>HotStuff 是一个基于签名的3pc协议, 它是针对pbft的view change性能太低而提出的。view change是在一个view中多数派节点（我们叫quorum)没有收到primary的消息时就会触发。每次进行viewchange都会产生一个新的primary去防止原来的primary不工作或者做假工作。</p>
 <p>HotStuff 的优化点在于他的view是不断增加的。每一轮consensus都使用不同的view，这样就代表每一轮都可能是不同的leader去触发。</p>
-<h1 id="基础HotStuff-的3阶段"><a href="#基础HotStuff-的3阶段" class="headerlink" title="基础HotStuff 的3阶段"></a>基础HotStuff 的3阶段</h1><h2 id="Prepare"><a href="#Prepare" class="headerlink" title="Prepare:"></a>Prepare:</h2><p><strong>leader</strong>:<br>  当前view的leader收到了(n-f)条NewView消息就开始这一轮的consensus。NewView是根据当前ViewNum算出来的，因此下一轮可能就不是这个leader了。<br>  NewView中带有每个节点的prepareQC。prepareQC代表这该节点已经投票了的proposal。prepareQC是之前某个leader收到了quorum个prepare vote之后产生的，然后广播给所有节点，代表该proposal已经进入了第二阶段。这里有点像paxos的第二阶段收到多数派的值后，该值就确定了。这个值就是prepareQC。然后每个节点将这个值发送给下一个leader，这样下一个leader就知道当前多数派得到的最新数据。</p>
-<p>  当leader收到了(n-f)条NewView后，选择需要提交的proposal, 创建新block，然后广播给其他节点,发送prepare message，其中包含了这个highQC。<br></br></p>
-<p><strong>replica</strong>:<br>  每个replica收到了leader的prepare message 后验证，然后把新的block追加到自己的chain当中。后返回一个prepare-vote message。</p>
-<h2 id="pre-commit"><a href="#pre-commit" class="headerlink" title="pre-commit:"></a>pre-commit:</h2><p><strong>leader</strong>:<br>  leader收到了多数派的prepare-vote后(消息是一样的)， 就得到了一个prepareQC, 表示这个消息已经被多数派vote过了，可以拿去提交。然后广播pre-commit, 消息中会带上prepareQC。<br></br></p>
-<p><strong>replica</strong>:<br>  replica 收到了leader发过来的pre-commit后， 验证prepareQC (how?),然后更新自己的prepareQC (NewView 的时候有用)，然后回一个pre-commit-vote。</p>
-<h2 id="commit"><a href="#commit" class="headerlink" title="commit:"></a>commit:</h2><p><strong>leader</strong>:<br>  做同样的事情，收到了多数派的pre-commit-vote之后，产生pre-commitQC,然后广播commit并带上pre-commitQC。<br></br></p>
-<p><strong>replica</strong>:<br>  replica收到leader的commit之后，就回一个commit-vote。</p>
-<h2 id="decide"><a href="#decide" class="headerlink" title="decide:"></a>decide:</h2><p><strong>leader</strong>:<br>  继续一样的事情，收到了commite-vote之后，就可以commit了，生成commitQC,广播decide message。<br></br></p>
-<p><strong>replica</strong>:<br>  replica收到了leader的decide之后，就commit了，然后新的一轮开始，增加ViewNum,然后发送给新的leader。</p>
-<h2 id="问题："><a href="#问题：" class="headerlink" title="问题："></a>问题：</h2><ol>
-<li><p>为什么leader只需要发一个QC而不需要把多数派的消息一起打包，replica就能验证这个QC的有效性？<br>由于QC用的是threshold签名，签名的时候每个人贡献其中的一份，需要多数派的签名才能得出完整的签名。但是校验的时候，只需要多数派的公钥集合就可以去校验。而所有人的公钥是一开始每个人都拥有的。所以传递消息的时候只需要给QC而不需要传消息集合，这样就把消息复杂度降到了o(N) (一条消息给n个人)。</p>
-</li>
-<li><p>为什么需要decide？ 为什么不是commit之后就可以直接提交了？<br>decide是给发NewView用的，其实在commit阶段就已经达成共识了，可以提交了。但是由于需要进入下一轮就需要多数派的NewView消息，因此需要确保多数派的消息已经都被commit了。如果在commit阶段就发NewView的话会出现一部分在旧的View一部分在新的View。譬如primary是坏人，发commit给一半的人，对于另外一半不发消息。另外一半超时就会发新View，但是另外一半由于commit了就会发旧View，此时就会死锁了。</p>
-</li>
-<li><p>存在不能追加的情况？什么时候会存在分支？<br>我觉得这个case只存在primary发送假数据的情况下。</p>
-</li>
-</ol>
-<h1 id="Chain-HotStuff"><a href="#Chain-HotStuff" class="headerlink" title="Chain HotStuff"></a>Chain HotStuff</h1><p>由于所有阶段的行为都是一样的，leader广播message，然后等待多数派的vote。因此将这些阶段变成了流水线。<br>然后把NewView从decide阶段放到了prepare阶段。在每一个阶段会存在[a,b,c]的状态，a是prepare状态，<br>b是pre-commit状态，c是commit状态,对应的就是发送pre-commit消息，commit消息和decide消息。</p>
-<p>每一个节点收到了leader的proposal，就直接给下一个leader发vote。</p>
-<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><ol>
-<li>为什么之前NewView不能放在commit阶段而这里能放在prepapre阶段呢？<br>在prepare阶段也会出现一半prepare一半未prepare的状态。但是呢，因为这里只有一个值，就是是否已经prepare了，新的leader必须得到多数派对前一轮proposal的签名才能继续,因此由于只是确定一个值，可以直接在prepare阶段做。而basic的是确定两个值，一个是commit的值，一个是ViewNum。所以必须要增加一轮。</li>
-</ol>
-<h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>HotStuff 能做线性的原因在于它的proposal是线性的。不像PBFT,在一个view里面的proposal是无序的。有序的提交会简化很多流程。譬如paxos。</p>
-
+          
       
     </div>
     
@@ -424,27 +399,6 @@
                 <a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/luuman/hexo-theme-spfk" target="_blank">spfk</a> by luuman
             </div>
         </div>
-        
-            <div class="visit">
-                
-                    <span id="busuanzi_container_site_pv" style='display:none'>
-                        <span id="site-visit" >海贼到访数: 
-                            <span id="busuanzi_value_site_uv"></span>
-                        </span>
-                    </span>
-                
-                
-                    <span>, </span>
-                
-                
-                    <span id="busuanzi_container_page_pv" style='display:none'>
-                        <span id="page-visit">本页阅读量: 
-                            <span id="busuanzi_value_page_pv"></span>
-                        </span>
-                    </span>
-                
-            </div>
-        
     </div>
 </footer>
 
@@ -474,32 +428,6 @@
 
 
 <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
-</script>
-
-  <script language="javascript">
-    $(function() {
-        $("a[title]").each(function() {
-            var a = $(this);
-            var title = a.attr('title');
-            if (title == undefined || title == "") return;
-            a.data('title', title).removeAttr('title').hover(
-
-            function() {
-                var offset = a.offset();
-                $("<div id=\"anchortitlecontainer\"></div>").appendTo($("body")).html(title).css({
-                    top: offset.top - a.outerHeight() - 15,
-                    left: offset.left + a.outerWidth()/2 + 1
-                }).fadeIn(function() {
-                    var pop = $(this);
-                    setTimeout(function() {
-                        pop.remove();
-                    }, pop.text().length * 800);
-                });
-            }, function() {
-                $("#anchortitlecontainer").remove();
-            });
-        });
-    });
 </script>
 
 
