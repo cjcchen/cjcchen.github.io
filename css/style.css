@@ -139,8 +139,6 @@ body,
 body {
   font-family: "微软雅黑", 'Microsoft JhengHei', Tahoma, Helvetica, Arial, "\5b8b\4f53", sans-serif;
   font-size: 16px;
-  background: #3f3f3f;
-  color: #999;
   -webkit-overflow-scrolling: touch;
 }
 ::selection {
@@ -3985,9 +3983,6 @@ pre .link_url {
 #footer .outer {
   padding: 0 30px;
 }
-#footer a {
-  color: #fff;
-}
 #footer a:hover {
   color: #999;
 }
@@ -4405,7 +4400,6 @@ pre .link_url {
   text-decoration: none;
   font-weight: normal;
   font-size: 10px;
-  color: #fff;
   height: 18px;
   line-height: 18px;
   float: left;
