@@ -212,7 +212,7 @@ a {
 }
 #container #mobile-nav {
   display: none;
-  background: url("../img/lbg.jpg") #515457;
+  background: url("../img/lbg2.jpg") #515457;
   background-size: cover;
 }
 #container #mobile-nav .overlay {
@@ -249,7 +249,7 @@ a {
   margin: 3px;
 }
 #container .left-col {
-  background: url("../img/lbg.jpg") #515457;
+  background: url("../img/lbg2.jpg") #515457;
   width: 300px;
   position: fixed;
   opacity: 1;
@@ -273,8 +273,8 @@ a {
   margin: 40px auto 0;
   overflow: auto;
   position: absolute;
-  left: 50%;
-  top: 30%;
+  left: 35%;
+  top: 77%;
   -webkit-transform: translate(-50%, -50%);
   -moz-transform: translate(-50%, -50%);
   -o-transform: translate(-50%, -50%);
