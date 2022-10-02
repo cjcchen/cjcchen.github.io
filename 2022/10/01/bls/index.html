@@ -3,20 +3,24 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Eth deploy | JuneChen&#39;s Blog</title>
+  <title>BLS 签名 | JuneChen&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="eth的性能测试搭建eth集群，可以通过修改consensus.go的除数big9去控制block的产生时间  创建财富账号,搭建多少个节点就需要创建多少个账号，每个节点一个账号 create_account.sh 设置节点的ip ipconfig.sh 创建节点点信息并且scp到节点createnode.sh 如果是重新初始化，则可以直接scp scp_node.sh 测试性能, 设置另外一个i">
+  <meta name="description" content="BLS threshold签名">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Eth deploy">
-<meta property="og:url" content="http://example.com/2022/08/04/Eth-deploy/index.html">
+<meta property="og:title" content="BLS 签名">
+<meta property="og:url" content="http://example.com/2022/10/01/bls/index.html">
 <meta property="og:site_name" content="JuneChen&#39;s Blog">
-<meta property="og:description" content="eth的性能测试搭建eth集群，可以通过修改consensus.go的除数big9去控制block的产生时间  创建财富账号,搭建多少个节点就需要创建多少个账号，每个节点一个账号 create_account.sh 设置节点的ip ipconfig.sh 创建节点点信息并且scp到节点createnode.sh 如果是重新初始化，则可以直接scp scp_node.sh 测试性能, 设置另外一个i">
+<meta property="og:description" content="BLS threshold签名">
 <meta property="og:locale" content="en_US">
-<meta property="article:published_time" content="2022-08-04T04:14:04.000Z">
-<meta property="article:modified_time" content="2022-09-26T08:31:18.916Z">
+<meta property="og:image" content="http://example.com/img/bls.jpeg">
+<meta property="og:image" content="http://example.com/img/bls1.jpg">
+<meta property="og:image" content="http://example.com/img/bls2.jpg">
+<meta property="og:image" content="http://example.com/img/bls3.jpg">
+<meta property="article:published_time" content="2022-10-01T08:28:40.000Z">
+<meta property="article:modified_time" content="2022-10-02T02:53:14.859Z">
 <meta property="article:author" content="John Doe">
-<meta property="article:tag" content="deployment">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/bls.jpeg">
   
   
     <link rel="icon" href="/img/fav.jpeg">
@@ -147,11 +151,11 @@
         </header>                
     </div>
 </nav>
-      <div class="body-wrap"><article id="post-Eth-deploy" class="article article-type-post" itemscope itemprop="blogPost">
+      <div class="body-wrap"><article id="post-bls" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2022/08/04/Eth-deploy/" class="article-date">
-      <time datetime="2022-08-04T04:14:04.000Z" itemprop="datePublished">2022-08-04</time>
+      <a href="/2022/10/01/bls/" class="article-date">
+      <time datetime="2022-10-01T08:28:40.000Z" itemprop="datePublished">2022-10-01</time>
 </a>
     </div>
   
@@ -164,7 +168,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      Eth deploy
+      BLS 签名
     </h1>
   
 
@@ -178,10 +182,6 @@
 
 
         
-    <div class="article-tag tagcloud">
-        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/deployment/" rel="tag">deployment</a></li></ul>
-    </div>
-
         <div class="clearfix"></div>
       </div>
       
@@ -189,16 +189,30 @@
     <div class="article-entry" itemprop="articleBody">
       
           
-        <h1 id="eth的性能测试"><a href="#eth的性能测试" class="headerlink" title="eth的性能测试"></a>eth的性能测试</h1><p>搭建eth集群，可以通过修改<a target="_blank" rel="noopener" href="https://github.com/cjcchen/blockchain_deployment/blob/master/ethereum/go-ethereum/consensus/ethash/consensus.go">consensus.go</a>的除数<a target="_blank" rel="noopener" href="https://github.com/cjcchen/blockchain_deployment/blob/master/ethereum/go-ethereum/consensus/ethash/consensus.go#L371">big9</a>去控制block的产生时间</p>
+        <h1 id="椭圆曲线"><a href="#椭圆曲线" class="headerlink" title="椭圆曲线"></a>椭圆曲线</h1><p>椭圆曲线就是一个任何点都可导的曲线： $y^2&#x3D;x^3+ax+b$。 判别式 ${\Delta &#x3D;-16(4a^{3}+27b^{2})}$ 不为0。</p>
+<h1 id="BLS-加密"><a href="#BLS-加密" class="headerlink" title="BLS 加密"></a>BLS 加密</h1><p>BLS 利用了椭圆曲线和一个特殊函数的性质：<br>$e(P,Q)-&gt;n$ : 在椭圆曲线上的两个点P,Q可以推到出一个数n。<br>因此它也满足了一个交换律，对于任意的一个数$e(x * P,Q)&#x3D;e(P,x * Q)$</p>
+<p>然后该椭圆曲线好像只是给这个函数用来推出这个性质，和bls并没什么关系。</p>
+<h1 id="普通版："><a href="#普通版：" class="headerlink" title="普通版："></a>普通版：</h1><p>在椭圆曲线上有一个点G,这个点好像是个基点，然后所有加密的人都知道这个点G。<br>pk是私钥，然后公钥就是$P&#x3D;pk*G$。然后把P公布出去，其实应该是公布(P,G),但G是大家都事先知道的。</p>
+<p>加密：<br>对于一个消息m, 曲线变换之后得到一个点H(m),然后进行签名得到$S&#x3D;pk*H(m)$。 然后公布签名S。</p>
+<p>校验：<br>校验签名, 同样先对消息m做变换得到H(m), 然后验证$e(P,H(m)) &#x3D; e(G,S)$。<br>因为$e(P, H(m)) &#x3D; e(pk*G, H(m)) &#x3D; e(G, pk * H(m)) &#x3D; e(G, S)$</p>
+<h1 id="threshold-签名-多重签名"><a href="#threshold-签名-多重签名" class="headerlink" title="threshold 签名 (多重签名)"></a>threshold 签名 (多重签名)</h1><p>threshold 签名是个m-n多重签名。n个人共同签名但是只需要其中m个签名去验证.</p>
+<p>假设有n个签名者，第i个签名者会拥有m个私钥$r(i,0),r(i,1),…,r(i,m-1)$, 并且他们会有对应的公钥$p(i,0),p(i,1),…,p(i,m-1)$, $p(i,t) &#x3D; g*r(i,t) (0 &lt;&#x3D; t &lt; m)$, g就是上面说的一个椭圆曲线上的基点,因此$p(i,t)$也是椭圆曲线上的点。</p>
+<p>然后因为密钥是不能公开的，因此公开的是m个密钥的一个组合函数$f^i(x)$:<br>$f^i(x) &#x3D; r(i,0) + r(i,1)*x + r(i,2)*x^2, + … + r(i,m-1) * x ^ {m-1}$。</p>
+<p>然后第i个人会其他第j个人发送这个函数值$f^i(j)$。 因此每个人j会收到其他人针对它的一个值$f^i(j) (1&lt;&#x3D;i&lt;&#x3D;n)$。<br>在加密的时候就利用这n个值做一个聚合签名$S^i&#x3D;\Sigma(f^j(i)*H(m))$。</p>
+<p><img src="/img/bls.jpeg" alt="test"> </p>
+<p>因为$f^j(i) &#x3D; r(j,0) + r(j,1)*i + r(j,2)*i^2+…+r(j,m-1)*i^{m-1}$,<br>将所有的$f^j$加起来，等价于$\sum_{j&#x3D;1}^{n}(f^j(i))&#x3D;(\Sigma(r(j,0)) + \Sigma(r(j,1))*i + …+\Sigma(r(j,m-1))*i^{m-1})$。<br>那么所有人的签名里面，唯一不一样的就是i，所以将$\Sigma(r(j,t))$变成变量$X_t$,<br>那么就有$S^i&#x3D;(X_0+X_1 * i+X_2 * i^2+…+X_{m-1} * i^{m-1}) * H(m)$。</p>
+<p><img src="/img/bls1.jpg" alt="bls1"> </p>
+<p>上面其实是把$S^i$做一个变换让我们可以求一个m*m的矩阵得出$X_0$。</p>
+<p>现在当收到m个签名$S^i&#x3D;\sum(f^j(i)*H(m))$,则可以解方程组解出$X_0$了。</p>
+<p>现在终于用上公钥开始验证了。这里要签证两个东西，1.从第j个人发给i的私钥函数值$f^j(i)$的正确性。 2. 消息签名的正确性。</p>
 <ol>
-<li>创建财富账号,搭建多少个节点就需要创建多少个账号，每个节点一个账号<br> <a target="_blank" rel="noopener" href="https://github.com/cjcchen/blockchain_deployment/blob/master/ethereum/node/create_account.sh">create_account.sh</a></li>
-<li>设置节点的ip <a target="_blank" rel="noopener" href="https://github.com/cjcchen/blockchain_deployment/blob/master/ethereum/node/ipconfig.sh">ipconfig.sh</a></li>
-<li>创建节点点信息并且scp到节点<a target="_blank" rel="noopener" href="https://github.com/cjcchen/blockchain_deployment/blob/master/ethereum/node/createnode.sh">createnode.sh</a></li>
-<li>如果是重新初始化，则可以直接scp <a target="_blank" rel="noopener" href="https://github.com/cjcchen/blockchain_deployment/blob/master/ethereum/node/scp_node.sh">scp_node.sh</a></li>
-<li>测试性能, 设置另外一个ip列表<a target="_blank" rel="noopener" href="https://github.com/cjcchen/blockchain_deployment/blob/master/ethereum/config.py">config.py</a><br> 因为这个列表是给python用的，所以用了另外一个list，也可以优化和shell共用</li>
-<li>python3 makepeer.py 给每一个节点添加peer，当前测试只能最大添加65个peer，不知道为什么，明明设置了256个peer，估计有bug</li>
-<li>开始测试.&#x2F;miner.sh N,N是机器数，测试脚本里面会对节点1不断的发送交易，其他节点不断的去挖矿</li>
+<li><p>验证私钥函数值<br>每个人i都会收到j的m个公钥，对应m个$r(j,t)(0 &lt;&#x3D; t&lt; m-1)$，即$P^j(t) &#x3D; g*r(j,t) ( 0 &lt;&#x3D; t &lt; m)$<br>当收到$f^j(i)$时，因为$f^j(i) &#x3D; r(j,0) + r(j,1) * i + … + r(j,m-1) * i^{m-1}$,<br>那么<br><img src="/img/bls2.jpg" alt="bls2"><br>然而p(j,t)就是j发过来的m个公钥， 因此只需要验证$f^j(i)$ 和 $\sum(p(j,t) * i^t)$的关系。</p>
+</li>
+<li><p>验证消息签名<br>当收到m个消息的签名$S^j$时，就可以解一个m元m次方程组了。那么解出$X_0$。<br>那么<br><img src="/img/bls3.jpg" alt="bls3"><br>因此只需要验证$X_0 * g$和每个人的第0个的签名的和$\sum(p(j,0))$。</p>
+</li>
 </ol>
+<p>到此整个m-n threshold 签名就结束了。</p>
+<p>BLS算法只需要一开始把$f^j(i)$和所有的$p(i,t)(0 &lt;&#x3D; t &lt; m)$同步给其他人。<br>后面的加密和校验都不需要再通信。而且节点i只需要发送消息m和单个签名$S^i$,<br>不像普通的证明，需要带上2f+1个证明，使得通信的带宽减少了，而且校验速度也加快了。<br>就是处理起来有点麻烦。</p>
 
       
     </div>
@@ -209,18 +223,9 @@
 
 <nav id="article-nav">
   
-    <a href="/2022/08/05/hyperledger-deploy/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption"><</strong>
-      <div class="article-nav-title">
-        
-          hyperledger deploy
-        
-      </div>
-    </a>
   
-  
-    <a href="/2022/07/30/cardano-deployment/" id="article-nav-older" class="article-nav-link-wrap">
-      <div class="article-nav-title">Cardano 私有集群搭建</div>
+    <a href="/2022/09/26/hotstuff/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">HotStuff BFT Consensus in the Lens of Blockchain</div>
       <strong class="article-nav-caption">></strong>
     </a>
   

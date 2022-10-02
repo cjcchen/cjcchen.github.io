@@ -3807,9 +3807,6 @@ a.gitment-editor-footer-tip:hover {
   list-style: decimal;
   margin: 0 10px;
 }
-.article-entry li:hover {
-  background-color: #2e2e2e;
-}
 .article-entry .highlight {
   border-radius: 4px;
   padding: 0 10px;
