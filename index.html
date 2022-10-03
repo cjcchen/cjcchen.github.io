@@ -174,16 +174,8 @@
     <div class="article-entry" itemprop="articleBody">
       
           
-        <p>PoE 是一个zyzzyva的变体，其实就是把client的验证变成了primary的验证。</p>
-<h1 id="zyzzyva"><a href="#zyzzyva" class="headerlink" title="zyzzyva"></a>zyzzyva</h1><p>zyzzyva是利用client去确认消息。<br>对于一个消息m，client先发送给primary，然后primary去分配一个sequence，接着发给每一个replica。当replica收到了m之后，如果有效，则直接返回给client。这是没有byzantine情况下的client一阶段提交，client-&gt;primary.</p>
-<p><img src="/img/zyzzyva.jpg" alt="zyzzyva"> </p>
-<p>当client只收到至少2f+1条回复的时候，就是byzantine问题了，有人不回复，但是不多于f个。这时候client就commit一条消息给每一个replica，然后每一个replica根据本地的消息去修复。 primary-&gt;replica, replica-&gt;client, client-&gt;replica, 最后等2f+1个回复确保都提交了.<br>这个是byzatine情况下的client二阶段提交,client-&gt;primary，client-&gt;replica.<br>这里的好处是可以利用client的第二段提交把数据修复了。</p>
-<p><img src="/img/zyzzyva1.jpg" alt="zyzzyva1"><br>当client没有收到2f+1条回复时，说明丢消息了，那么就重新发数据。</p>
-<h1 id="PoE"><a href="#PoE" class="headerlink" title="PoE"></a>PoE</h1><p>PoE的声明是说他不需要依赖client的正确性，因为他把client的任务交给了primary。<br>client发消息给primary，然后primary分配一个sequence，接着发给每一个replica。当replica收到消息后，回复一条support消息给primary，然后primary就发一个certify给每一个replica，最后replica把结果返回给client。<br><img src="/img/poe.jpg" alt="poe"> </p>
-<p>很明显这个是zyzzyva的byzantine情况。但是唯一不一样的是，PoE直接当他是byzantine去对待，而zyzzyva会设置一个超时尝试等到所有的replica去满足非byzantine情况 （虽然不知道为什么).</p>
-<p>PoE 的viewchange就遵循了正常的view change逻辑。每一个replica设置一个timer。如果timer超时之前，没有收到primary的提交，则发出一条view change request的消息。如果一个new primary收到了2f+1 view change request的消息，那么就发送new view消息给每一个replica。然后新的primary就产生了。这里的消息会带上所有的历史提交。每一个replica会验证这些历史提交。</p>
-<p>PoE 实现了正常的MaC加密和bls 门槛加密。bls门槛加密就减少了很多流量，每次不需要带上2f+1个证明。</p>
-
+              PoE 共识
+          
       
     </div>
     
