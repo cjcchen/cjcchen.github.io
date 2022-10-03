@@ -3,13 +3,17 @@
 <head>
   <meta charset="utf-8">
   
-  <title>Archives: 2022/10 | JuneChen&#39;s Blog</title>
+  <title>long range attack | JuneChen&#39;s Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta property="og:type" content="website">
-<meta property="og:title" content="JuneChen&#39;s Blog">
-<meta property="og:url" content="http://example.com/archives/2022/10/index.html">
+  <meta name="description" content="一个PoS的区块链攻击，可以修改历史记录">
+<meta property="og:type" content="article">
+<meta property="og:title" content="long range attack">
+<meta property="og:url" content="http://example.com/2022/10/02/long-range-attack/index.html">
 <meta property="og:site_name" content="JuneChen&#39;s Blog">
+<meta property="og:description" content="一个PoS的区块链攻击，可以修改历史记录">
 <meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2022-10-01T16:28:40.000Z">
+<meta property="article:modified_time" content="2022-10-02T07:18:19.516Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
   
@@ -39,8 +43,8 @@
           fancybox: true,
           animate: true,
           isHome: false,
-          isPost: false,
-          isArchive: true,
+          isPost: true,
+          isArchive: false,
           isTag: false,
           isCategory: false,
           open_in_new: false
@@ -142,115 +146,91 @@
         </header>                
     </div>
 </nav>
-      <div class="body-wrap">
+      <div class="body-wrap"><article id="post-long-range-attack" class="article article-type-post" itemscope itemprop="blogPost">
   
+    <div class="article-meta">
+      <a href="/2022/10/02/long-range-attack/" class="article-date">
+      <time datetime="2022-10-01T16:28:40.000Z" itemprop="datePublished">2022-10-02</time>
+</a>
+    </div>
   
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
     
     
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      long range attack
+    </h1>
+  
+
+      </header>
       
+      <div class="article-info article-info-post">
+        
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/blockchain/">blockchain</a>
+    </div>
+
+
+        
+        <div class="clearfix"></div>
+      </div>
       
-      <section class="archives-wrap">
-        <div class="archive-year-wrap">
-          <a href="/archives/2022" class="archive-year">2022</a>
-        </div>
-        <div class="archives">
     
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-          <div class="article-meta">
-              <a href="/2022/10/03/poe/" class="archive-article-date">
-      <time datetime="2022-10-03T06:08:15.000Z" itemprop="datePublished">10-03</time>
-</a>
-        </div>
-         
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2022/10/03/poe/">poe</a>
-    </h1>
-  
-
-        <div class="article-info info-on-archive">
+    <div class="article-entry" itemprop="articleBody">
+      
           
-    <div class="article-category tagcloud">
-    <a class="article-category-link" href="/categories/blockchain/">blockchain</a>
+        <p>PoS的一个缺点就是它不需要任何证明，在区块产生的时候根据当前的stake的分布求选择下一个出块的人。<br>创世块会记录所有参与者的信息，因此一条链的有效性可以从创世块开始去验证每一个块的创立者是不是当前权益最大的人。<br>但是如果某个人利用了某些手段制造出了一个分支，那么当一个新用户或者离线很久的用户上来拉取数据时，它将不能分辨那个是主链。</p>
+<p>long range attack 有三种攻击手段：</p>
+<ol>
+<li>Simple Attack</li>
+<li>Posterior Corruption</li>
+<li>Stake Bleeding</li>
+</ol>
+<h1 id="Simple-Attack"><a href="#Simple-Attack" class="headerlink" title="Simple Attack"></a>Simple Attack</h1><p>Simple Attack就是真的很simple了。由于创世块记录了参与者的信息，因此攻击者想要建分支就必须只能从自己获得资格的那个块开始。<br>而且因为它必须要创建块的速度比主链块，才能建出一条更长的链。建出更长的链之后，其他人就可以在这条链上继续发展了。<br>因此它必须要提前把链建好，当自己获得了出块资格的时候，马上把这条链attach上去。当验证信息不加入时间戳验证的时候，这个方法是可行的。</p>
+<p>（问题，验证时间戳是指校验出块时间？譬如以太坊是3秒一个块，如果它的块的间隔少于3秒，那就是作弊了)</p>
+<h1 id="Posterior-Corruption"><a href="#Posterior-Corruption" class="headerlink" title="Posterior Corruption"></a>Posterior Corruption</h1><p>Posterior Corruption 的核心是收买别人的私钥，特别是那些已经收割跑路的人。虽然那些人跑路了，但是如果拿到了他们的私钥，是可以对历史块进行修改的。<br>当收买了足够的人使得在某个区间内这些人出块是连续的，那么就代表他们已经成功创建了一个分支。因此在某个块开始，这个分支的出块速度和主块是一样的，就相当于copy了一条链出来。如果这时候广播出去，那么其他人就会看到两条相同的链，就很难区分哪个是真的。</p>
+<h1 id="Stake-Bleeding"><a href="#Stake-Bleeding" class="headerlink" title="Stake Bleeding"></a>Stake Bleeding</h1><p>Stake Bleeding 使用的是拖延技术。当攻击者获得了机会的时候，它不出块，而是skip掉这一块。因为skip掉了之后会拖住主链，因此它获得了一个块的机会去延长自己的链。<br>这种攻击必须要等待机会去移动，每次机会自己的分支就多一个块，这样需要漫长的等待。等自己的链比主链长了就可以广播出去了。<br>当然如果拿到了其他人的私钥那就快很多了。</p>
+<p>理解参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/shangsongwww/article/details/90053057">https://blog.csdn.net/shangsongwww/article/details/90053057</a></p>
+
+      
     </div>
-
-
-          
-        </div>
-        <div class="clearfix"></div>
-    </header>
+    
   </div>
+  
+    
+
+<nav id="article-nav">
+  
+    <a href="/2022/10/03/poe/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          poe
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2022/10/01/bls/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">BLS 签名</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+
+  
 </article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-          <div class="article-meta">
-              <a href="/2022/10/02/long-range-attack/" class="archive-article-date">
-      <time datetime="2022-10-01T16:28:40.000Z" itemprop="datePublished">10-02</time>
-</a>
-        </div>
-         
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2022/10/02/long-range-attack/">long range attack</a>
-    </h1>
-  
-
-        <div class="article-info info-on-archive">
-          
-    <div class="article-category tagcloud">
-    <a class="article-category-link" href="/categories/blockchain/">blockchain</a>
-    </div>
 
 
-          
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-    
-    
-    <article class="archive-article archive-type-post">
-  <div class="archive-article-inner">
-    <header class="archive-article-header">
-          <div class="article-meta">
-              <a href="/2022/10/01/bls/" class="archive-article-date">
-      <time datetime="2022-10-01T08:28:40.000Z" itemprop="datePublished">10-01</time>
-</a>
-        </div>
-         
-  
-    <h1 itemprop="name">
-      <a class="archive-article-title" href="/2022/10/01/bls/">BLS 签名</a>
-    </h1>
-  
-
-        <div class="article-info info-on-archive">
-          
-    <div class="article-category tagcloud">
-    <a class="article-category-link" href="/categories/blockchain/">blockchain</a>
-    </div>
-
-
-          
-        </div>
-        <div class="clearfix"></div>
-    </header>
-  </div>
-</article>
-  
-  
-    </div></section>
-  
-
-    
+    <script>
+        
+    </script>
 
 </div>
       <footer id="footer">
@@ -311,17 +291,6 @@ MathJax.Hub.Queue(function() {
     })
 </script>
 
-
-    <button class="hide-labels">TAG 开关</button>
-    <script src="https://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js">
-    </script>
-    <script>
-        $(document).ready(function() {
-            $("button").click(function() {
-                $(".article-info").toggle(200);
-            });
-        });
-    </script>
 
 <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
 </script>
