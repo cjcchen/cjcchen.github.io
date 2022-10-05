@@ -13,7 +13,7 @@
 <meta property="og:description" content="HotStuff 是一个基于签名的3pc协议, 它是针对pbft的view change性能太低而提出的。view change是在一个view中多数派节点（我们叫quorum)没有收到primary的消息时就会触发。每次进行viewchange都会产生一个新的primary去防止原来的primary不工作或者做假工作。 HotStuff 的优化点在于他的view是不断增加的。每一轮consens">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-09-26T08:28:40.000Z">
-<meta property="article:modified_time" content="2022-10-05T06:12:17.472Z">
+<meta property="article:modified_time" content="2022-10-05T06:45:35.910Z">
 <meta property="article:author" content="John Doe">
 <meta name="twitter:card" content="summary">
   
@@ -188,8 +188,9 @@
 <p>HotStuff 的优化点在于他的view是不断增加的。每一轮consensus都使用不同的view，这样就代表每一轮都可能是不同的leader去触发。</p>
 <span id="more"></span>
 
-<h1 id="基础HotStuff-的3阶段"><a href="#基础HotStuff-的3阶段" class="headerlink" title="基础HotStuff 的3阶段"></a>基础HotStuff 的3阶段</h1><h2 id="Prepare"><a href="#Prepare" class="headerlink" title="Prepare:"></a>Prepare:</h2><p><strong>leader</strong>:<br>  当前view的leader收到了(n-f)条NewView消息就开始这一轮的consensus。NewView是根据当前ViewNum算出来的，因此下一轮可能就不是这个leader了。<br>  NewView中带有每个节点的prepareQC。prepareQC代表这该节点已经投票了的proposal。prepareQC是之前某个leader收到了quorum个prepare vote之后产生的，然后广播给所有节点，代表该proposal已经进入了第二阶段。这里有点像paxos的第二阶段收到多数派的值后，该值就确定了。这个值就是prepareQC。然后每个节点将这个值发送给下一个leader，这样下一个leader就知道当前多数派得到的最新数据。</p>
-<p>  当leader收到了(n-f)条NewView后，选择需要提交的proposal, 创建新block，然后广播给其他节点,发送prepare message，其中包含了这个highQC。<br></br></p>
+<h1 id="基础HotStuff-的3阶段"><a href="#基础HotStuff-的3阶段" class="headerlink" title="基础HotStuff 的3阶段"></a>基础HotStuff 的3阶段</h1><h2 id="Prepare"><a href="#Prepare" class="headerlink" title="Prepare:"></a>Prepare:</h2><p><strong>leader</strong>:<br>  NewView 是触发新的leader的条件，前一轮结束了每一个replica就会发一条newview消息叫新的leader开始工作。</p>
+<p>  当前view的leader收到了(n-f)条NewView消息就开始这一轮的consensus。NewView是根据当前ViewNum算出来的，因此下一轮可能就不是这个leader了。<br>  NewView中带有每个节点的prepareQC。prepareQC代表这该节点已经投票了的proposal。prepareQC是之前某个leader收到了quorum个prepare vote之后产生的，然后广播给所有节点，代表该proposal已经进入了第二阶段。这里有点像paxos的第二阶段收到多数派的值后，该值就确定了。这个值就是prepareQC。然后每个节点将这个值发送给下一个leader，这样下一个leader就知道当前多数派得到的最新数据。</p>
+<p>  当leader收到了(n-f)条NewView后，选择需要提交的proposal, 创建新block，然后广播给其他节点,发送prepare message，其中包含了这个highQC。 highQC就是所有的节点发过来的newview里面，提交了的链的最长的那个值，保证值是最新的。<br></br></p>
 <p><strong>replica</strong>:<br>  每个replica收到了leader的prepare message 后验证，然后把新的block追加到自己的chain当中。后返回一个prepare-vote message。</p>
 <h2 id="pre-commit"><a href="#pre-commit" class="headerlink" title="pre-commit:"></a>pre-commit:</h2><p><strong>leader</strong>:<br>  leader收到了多数派的prepare-vote后(消息是一样的)， 就得到了一个prepareQC, 表示这个消息已经被多数派vote过了，可以拿去提交。然后广播pre-commit, 消息中会带上prepareQC。<br></br></p>
 <p><strong>replica</strong>:<br>  replica 收到了leader发过来的pre-commit后， 验证prepareQC (how?),然后更新自己的prepareQC (NewView 的时候有用)，然后回一个pre-commit-vote。</p>
@@ -208,7 +209,10 @@
 <h1 id="Chain-HotStuff"><a href="#Chain-HotStuff" class="headerlink" title="Chain HotStuff"></a>Chain HotStuff</h1><p>由于所有阶段的行为都是一样的，leader广播message，然后等待多数派的vote。因此将这些阶段变成了流水线。<br>然后把NewView从decide阶段放到了prepare阶段。在每一个阶段会存在[a,b,c]的状态，a是prepare状态，<br>b是pre-commit状态，c是commit状态,对应的就是发送pre-commit消息，commit消息和decide消息。</p>
 <p>每一个节点收到了leader的proposal，就直接给下一个leader发vote。</p>
 <h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><ol>
-<li>为什么之前NewView不能放在commit阶段而这里能放在prepapre阶段呢？<br>在prepare阶段也会出现一半prepare一半未prepare的状态。但是呢，因为这里只有一个值，就是是否已经prepare了，新的leader必须得到多数派对前一轮proposal的签名才能继续,因此由于只是确定一个值，可以直接在prepare阶段做。而basic的是确定两个值，一个是commit的值，一个是ViewNum。所以必须要增加一轮。</li>
+<li><p>为什么之前NewView不能放在commit阶段而这里能放在prepapre阶段呢？<br>在prepare阶段也会出现一半prepare一半未prepare的状态。但是呢，因为这里只有一个值，就是是否已经prepare了，新的leader必须得到多数派对前一轮proposal的签名才能继续,因此由于只是确定一个值，可以直接在prepare阶段做。而basic的是确定两个值，一个是commit的值，一个是ViewNum。所以必须要增加一轮。</p>
+</li>
+<li><p>为什么pbft的viewchange是拿最小的checkpoint然而这里的leader拿最大的chain呢？</p>
+</li>
 </ol>
 <h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>HotStuff 能做线性的原因在于它的proposal是线性的。不像PBFT,在一个view里面的proposal是无序的。有序的提交会简化很多流程。譬如paxos。</p>
 
