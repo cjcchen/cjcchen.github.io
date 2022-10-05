@@ -147,6 +147,63 @@
 </nav>
       <div class="body-wrap">
   
+    <article id="post-tendermint" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2022/10/05/tendermint/" class="article-date">
+      <time datetime="2022-10-05T04:11:34.000Z" itemprop="datePublished">2022-10-05</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2022/10/05/tendermint/">tendermint</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>Tendermint 共识也是一个pbft的变体，他也是利用了不断的还primary去把view change这个复杂的过程去掉了。<br>论文写得很复杂呀。。。。是假装很高级吗？他的思路有点想paxos，在变primary的时候，去提交多数派已经成功达成共识的值。</p>
+<p>在普通的流程中，和普通的3阶段提交一样，primary接收到了proposal之后发给每一个replica，然后每一个replica就给其他人发prevote消息。当replica收到了2f+1个prevote消息后，就进入commit阶段。commit阶段会等（why？？？)一个超时时间才进行。</p>
+<p>在prevote阶段，这个值会记录下来，叫validvalue，lockvalue只是来校验是不是上一个view的。当需要更换primary的时候，primary会拿到这个值，然后重新提交。</p>
+<p>他的viewchange挺暴力的。由于每一round都会更换primary，当replica 超时没有收到任何消息时，就发个空消息当成是prevote的消息，那么在precommit阶段就是提交了一个空值，从而更换下一任primary。</p>
+<p>还有更暴力的就是所有的消息都是基于在GST时间内到达。所以在更换primary时，假设了没有其他任何消息在网络上了。</p>
+<p>问题1: 如果下一任primary没有拿到这个validvalue从而提交了一个自己的值呢？<br>暴力换主，肯定能换到一个有值的。</p>
+<p>问题2: 为什么commit要等一个GST?<br>其实应该不需要等的，不知道为什么要等,因为他做了那么多保护措施。</p>
+
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+    <div class="article-category tagcloud">
+    <a class="article-category-link" href="/categories/blockchain/">blockchain</a>
+    </div>
+
+
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+  
     <article id="post-poe" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
